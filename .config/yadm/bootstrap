@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# This should be idempotent so it can be run multiple times.
+#
+
+cd "$HOME"
+
+echo Updating and upgrading...
+sudo apt update && sudo apt upgrade
+echo Finished updating and upgrading
+echo Auto-removing unused packages...
+sudo apt autoremove
+echo Finished auto-removing unused packages
+
+echo ==============================================================================
+echo Installing packages...
+echo ==============================================================================
+
+# curl
+if type -a curl >&2; then
+    echo curl already installed
+else
+    echo Installing curl
+    sudo apt-get install curl
+fi
+
+# nodejs
+# if type -a node >&2; then
+#     echo Node already installed
+# else
+#     echo Installing Node
+#     sudo apt-get install nodejs
+# fi
+
+# nvm
+if type -a nvm >&2; then
+    echo NVM already installed
+else # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
+    echo Installing nvm
+    if type -a node >&2; then
+        echo Node detected
+        echo Uninstalling nodejs
+        # https://askubuntu.com/questions/786015/how-to-remove-nodejs-from-ubuntu-16-04
+        sudo apt-get purge --auto-remove nodejs
+    fi
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+    if type -a nvm >&2; then
+        echo NVM installed successfully
+        echo Installing Node LTS
+        nvm install --lts
+        echo Activating Node LTS
+        nvm use --lts
+    else
+        echo NVM installation failed
+    fi
+fi
+
+# tmux
+
+
+# done
+echo ==============================================================================
+echo Bootstrapping complete
+echo ==============================================================================
+
+exec "$BASH"
