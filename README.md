@@ -14,9 +14,6 @@ Test that the SSH key is working
 ssh -T git@github.com
 ```
 
-If you are using an SSH key passphrase, make sure `ssh-agent` [auto-launches in Windows](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/working-with-ssh-key-passphrases?platform=mac#saving-your-passphrase-in-the-keychain) and [your passphrase is being saved in Mac](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/working-with-ssh-key-passphrases?platform=mac#saving-your-passphrase-in-the-keychain).
-
-
 ### Linux
 
 Update
@@ -38,7 +35,7 @@ sudo apt update
 
 ## Setup
 
-If your using Windows, open Git Bash
+If your using Windows, use Git Bash
 
 Install `yadm`
 

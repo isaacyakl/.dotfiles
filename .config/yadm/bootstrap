@@ -19,10 +19,6 @@ if [ "$system_type" = "Linux" ]; then
     sudo apt autoremove
     echo Finished auto-removing unused packages
 
-    echo ==============================================================================
-    echo Installing packages...
-    echo ==============================================================================
-
     # git
     echo Installing latest git version
     sudo apt-get install git
@@ -79,6 +75,9 @@ elif [ "$system_type" = *"MINGW64_NT"* ]; then
     echo Running Windows Bootstrap...
     echo ==============================================================================
     
+    # https://docs.github.com/en/authentication/connecting-to-github-with-ssh/working-with-ssh-key-passphrases?platform=windows#auto-launching-ssh-agent-on-git-for-windows
+    echo Setting up ssh-agent auto-launch
+    cat .config/yadm/windows-ssh-agent-auto-launch >> .bashrc
 fi
 
 # Instead of using .gitconfig I am conditionally setting git config values
@@ -86,10 +85,6 @@ echo Configuring git
 git config --global user.name "yak";
 git config --global user.email "yak@isaacyakl.com";
 git config --global init.defaultBranch "main";
-if [ "$system_type" = "Linux" ]; then
-    # git config --global core.editor "code"
-elif [ "$system_type" = *"MINGW64_NT"* ]; then
-fi
 
 # done
 echo ==============================================================================
