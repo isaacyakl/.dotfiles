@@ -4,7 +4,7 @@ My personal dotfiles and environment setup guide.
 
 ## yadm
 
-Install `yadm` on WSL
+Install `yadm`
 
 ```shell
 sudo apt install yadm
