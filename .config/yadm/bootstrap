@@ -70,7 +70,7 @@ if [ "$system_type" = "Linux" ]; then
     # tmux
 
 # Git Bash on Windows
-elif [ "$system_type" = *"MINGW64_NT"* ]; then
+elif [[ "$system_type" = *"MINGW64_NT"* ]]; then
     echo ==============================================================================
     echo Running Windows Bootstrap...
     echo ==============================================================================
