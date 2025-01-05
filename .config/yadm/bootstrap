@@ -16,6 +16,10 @@ echo ===========================================================================
 echo Installing packages...
 echo ==============================================================================
 
+# git
+echo Installing latest git version
+sudo apt-get install git
+
 # curl
 if type -a curl >&2; then
     echo curl already installed
