@@ -6,30 +6,28 @@
 cd "$HOME" || { echo "Bootstrapping failed: Could not cd into $HOME"; exit 1; }
 
 # Create .bashrc if it doesn't exist
-FILE=".bashrc"
+BASHRC=".bashrc"
 
-if [[ ! -f "$FILE" ]]; then
-  touch "$FILE"
-  echo "Created: $FILE"
+if [[ ! -f "$BASHRC" ]]; then
+  touch "$BASHRC"
+  echo "Created: $BASHRC"
 fi
 
-function is_filea_in_fileb() {
-  local file_a="$1"
-  local file_b="$2"
+function is_line_in_file() {
+  local line="$1"
+  local file="$2"
 
-  # Check if both files exist
-  if [[ ! -f "$file_a" || ! -f "$file_b" ]]; then
-    return 1
+  # Check if file exists
+  if [[ ! -f "$file" ]]; then
+    return 1 # File not found
   fi
 
-  # Read each line of FILEA and check in FILEB
-  while IFS= read -r line; do
-    if ! grep -Fxq "$line" "$file_b"; then
-      return 1 # Return false if any line in FILEA is not in FILEB
-    fi
-  done < "$file_a"
-
-  return 0 # Return true if all lines in FILEA are in FILEB
+  # Check if the line exists in the file
+  if grep -Fxq "$line" "$file"; then
+    return 0 # Line found
+  else
+    return 1 # Line not found
+  fi
 }
 
 
@@ -98,10 +96,11 @@ if [ "$system_type" = "Linux" ]; then
     # tmux
 
     echo Setting up ssh-agent auto-launch
-    FILEA=".config/yadm/linux-ssh-agent-auto-launch"
-    FILEB=".bashrc"
-    if ! is_filea_in_fileb "$FILEA" "$FILEB"; then
-        cat "$FILEA" >> "$FILEB"
+    LINE="source .config/yadm/linux-ssh-agent-auto-launch"
+    FILE=".bashrc"
+    is_line_in_file "$LINE" "$FILE"
+    if ! is_line_in_file "$LINE" "$FILE"; then
+        printf "\n%s\n" "$LINE" >> "$FILE"
     fi
 
 # Git Bash on Windows
@@ -111,10 +110,11 @@ elif [[ "$system_type" = *"MINGW64_NT"* ]]; then
     echo ==============================================================================
     
     echo Setting up ssh-agent auto-launch
-    FILEA=".config/yadm/Windows-ssh-agent-auto-launch"
-    FILEB=".bashrc"
-    if ! is_filea_in_fileb "$FILEA" "$FILEB"; then
-        cat "$FILEA" >> "$FILEB"
+    LINE=".config/yadm/windows-ssh-agent-auto-launch"
+    FILE=".bashrc"
+    is_line_in_file "$LINE" "$FILE"
+    if ! is_line_in_file "$LINE" "$FILE"; then
+        printf "\n%s\n" "$LINE" >> "$FILE"
     fi
 fi
 
@@ -126,7 +126,7 @@ git config --global init.defaultBranch "main";
 
 # done
 echo ==============================================================================
-echo Bootstrapping complete
+echo Bootstrapping complete. Reloading shell...
 echo ==============================================================================
 
 exec "$BASH"
