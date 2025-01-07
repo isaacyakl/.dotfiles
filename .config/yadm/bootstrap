@@ -3,35 +3,35 @@
 # This should be idempotent so it can be run multiple times.
 #
 
-cd "$HOME"
+cd "$HOME" || { echo "Bootstrapping failed: Could not cd into $HOME"; exit 1; }
 
 # Create .bashrc if it doesn't exist
-FILE="~/.bashrc"
+FILE=".bashrc"
 
 if [[ ! -f "$FILE" ]]; then
   touch "$FILE"
   echo "Created: $FILE"
 fi
 
-check_contents() {
-    local file1="$1"
-    local file2="$2"
+function is_filea_in_fileb() {
+  local file_a="$1"
+  local file_b="$2"
 
-    # Read the content of file1 into an array
-    mapfile -t lines < "$file1"
+  # Check if both files exist
+  if [[ ! -f "$file_a" || ! -f "$file_b" ]]; then
+    return 1
+  fi
 
-    # Loop through each line in the array
-    for line in "${lines[@]}"; do
-        # Check if the line exists in file2
-        if ! grep -Fxq "$line" "$file2"; then
-            # If any line is not found, return false (1)
-            return 1
-        fi
-    done
+  # Read each line of FILEA and check in FILEB
+  while IFS= read -r line; do
+    if ! grep -Fxq "$line" "$file_b"; then
+      return 1 # Return false if any line in FILEA is not in FILEB
+    fi
+  done < "$file_a"
 
-    # If all lines are found, return true (0)
-    return 0
+  return 0 # Return true if all lines in FILEA are in FILEB
 }
+
 
 system_type=$(uname -s)
 
@@ -98,8 +98,10 @@ if [ "$system_type" = "Linux" ]; then
     # tmux
 
     echo Setting up ssh-agent auto-launch
-    if ! check_contents ".config/yadm/linux-ssh-agent-auto-launch" ".bashrc"; then
-        cat .config/yadm/linux-ssh-agent-auto-launch >> .bashrc
+    FILEA=".config/yadm/linux-ssh-agent-auto-launch"
+    FILEB=".bashrc"
+    if ! is_filea_in_fileb "$FILEA" "$FILEB"; then
+        cat "$FILEA" >> "$FILEB"
     fi
 
 # Git Bash on Windows
@@ -109,8 +111,10 @@ elif [[ "$system_type" = *"MINGW64_NT"* ]]; then
     echo ==============================================================================
     
     echo Setting up ssh-agent auto-launch
-    if ! check_contents ".config/yadm/linux-ssh-agent-auto-launch" ".bashrc"; then
-        cat .config/yadm/windows-ssh-agent-auto-launch >> .bashrc
+    FILEA=".config/yadm/Windows-ssh-agent-auto-launch"
+    FILEB=".bashrc"
+    if ! is_filea_in_fileb "$FILEA" "$FILEB"; then
+        cat "$FILEA" >> "$FILEB"
     fi
 fi
 
