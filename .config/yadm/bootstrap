@@ -5,6 +5,34 @@
 
 cd "$HOME"
 
+# Create .bashrc if it doesn't exist
+FILE="~/.bashrc"
+
+if [[ ! -f "$FILE" ]]; then
+  touch "$FILE"
+  echo "Created: $FILE"
+fi
+
+check_contents() {
+    local file1="$1"
+    local file2="$2"
+
+    # Read the content of file1 into an array
+    mapfile -t lines < "$file1"
+
+    # Loop through each line in the array
+    for line in "${lines[@]}"; do
+        # Check if the line exists in file2
+        if ! grep -Fxq "$line" "$file2"; then
+            # If any line is not found, return false (1)
+            return 1
+        fi
+    done
+
+    # If all lines are found, return true (0)
+    return 0
+}
+
 system_type=$(uname -s)
 
 if [ "$system_type" = "Linux" ]; then
@@ -69,15 +97,21 @@ if [ "$system_type" = "Linux" ]; then
 
     # tmux
 
+    echo Setting up ssh-agent auto-launch
+    if ! check_contents ".config/yadm/linux-ssh-agent-auto-launch" ".bashrc"; then
+        cat .config/yadm/linux-ssh-agent-auto-launch >> .bashrc
+    fi
+
 # Git Bash on Windows
 elif [[ "$system_type" = *"MINGW64_NT"* ]]; then
     echo ==============================================================================
     echo Running Windows Bootstrap...
     echo ==============================================================================
     
-    # https://docs.github.com/en/authentication/connecting-to-github-with-ssh/working-with-ssh-key-passphrases?platform=windows#auto-launching-ssh-agent-on-git-for-windows
     echo Setting up ssh-agent auto-launch
-    cat .config/yadm/windows-ssh-agent-auto-launch >> .bashrc
+    if ! check_contents ".config/yadm/linux-ssh-agent-auto-launch" ".bashrc"; then
+        cat .config/yadm/windows-ssh-agent-auto-launch >> .bashrc
+    fi
 fi
 
 # Instead of using .gitconfig I am conditionally setting git config values
