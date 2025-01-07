@@ -54,6 +54,8 @@ git clone https://github.com/yadm-dev/yadm.git ~/.yadm-project;
 ln -s ~/.yadm-project/yadm /bin/yadm;
 ```
 
+[Read more about adding tools to Git Bash](https://gist.github.com/evanwill/0207876c3243bbb6863e65ec5dc3f058)
+
 ## Setup .dotfiles
 
 Clone this repo
