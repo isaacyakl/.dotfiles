@@ -18,7 +18,6 @@ sudo apt update
 
 - Add a Git Bash Profile to Windows Terminal
 - Use bundled OpenSSH
-- Use the OpenSSL library
 - Use MinTTY
 - Use Git Credential Manager
 - Enable symbolic links
