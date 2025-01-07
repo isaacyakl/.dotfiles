@@ -100,7 +100,7 @@ if [ "$system_type" = "Linux" ]; then
     FILE=".bashrc"
     is_line_in_file "$LINE" "$FILE"
     if ! is_line_in_file "$LINE" "$FILE"; then
-        printf "\n%s\n" "$LINE" >> "$FILE"
+        printf "\n\n%s\n" "$LINE" >> "$FILE"
     fi
 
 # Git Bash on Windows
@@ -114,7 +114,7 @@ elif [[ "$system_type" = *"MINGW64_NT"* ]]; then
     FILE=".bashrc"
     is_line_in_file "$LINE" "$FILE"
     if ! is_line_in_file "$LINE" "$FILE"; then
-        printf "\n%s\n" "$LINE" >> "$FILE"
+        printf "\n\n%s\n" "$LINE" >> "$FILE"
     fi
 fi
 
