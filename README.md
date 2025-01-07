@@ -17,7 +17,7 @@ sudo apt update
 [Install Git for Windows](https://publish.obsidian.md/git-doc/Installation#Git+installation)
 
 - Add a Git Bash Profile to Windows Terminal
-- Use external OpenSSH
+- Use bundled OpenSSH
 - Use the OpenSSL library
 - Use MinTTY
 - Use Git Credential Manager
