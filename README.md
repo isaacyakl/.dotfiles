@@ -23,6 +23,8 @@ sudo apt update
 - Use Git Credential Manager
 - Enable symbolic links
 
+[Read about installation options](https://gist.github.com/bhagatabhijeet/e08bec472c1a7ee9fb5414b3192b0d3b)
+
 ### SSH
 
 Assuming [there are no existing SSH keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/checking-for-existing-ssh-keys), [generate a new SSH keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent).
