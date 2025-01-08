@@ -96,7 +96,7 @@ if [ "$system_type" = "Linux" ]; then
     # tmux
 
     echo Setting up ssh-agent auto-launch
-    LINE="source .config/yadm/linux-ssh-agent-auto-launch"
+    LINE="source ~/.config/yadm/linux-ssh-agent-auto-launch"
     FILE=".bashrc"
     is_line_in_file "$LINE" "$FILE"
     if ! is_line_in_file "$LINE" "$FILE"; then
@@ -110,7 +110,7 @@ elif [[ "$system_type" = *"MINGW64_NT"* ]]; then
     echo ==============================================================================
     
     echo Setting up ssh-agent auto-launch
-    LINE="source .config/yadm/windows-ssh-agent-auto-launch"
+    LINE="source ~/.config/yadm/windows-ssh-agent-auto-launch"
     FILE=".bashrc"
     is_line_in_file "$LINE" "$FILE"
     if ! is_line_in_file "$LINE" "$FILE"; then
