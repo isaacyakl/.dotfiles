@@ -1,7 +1,6 @@
 #!/bin/bash
-#
-# This should be idempotent so it can be run multiple times.
-#
+
+# This entire script should be idempotent so it can be run multiple times.
 
 cd "$HOME" || { echo "Bootstrapping failed: Could not cd into $HOME"; exit 1; }
 
@@ -30,9 +29,10 @@ function is_line_in_file() {
   fi
 }
 
-
 system_type=$(uname -s)
-
+################################################################################
+# Linux
+################################################################################
 if [ "$system_type" = "Linux" ]; then
     echo ==============================================================================
     echo Running Linux Bootstrap...
@@ -103,7 +103,9 @@ if [ "$system_type" = "Linux" ]; then
         printf "\n\n%s\n" "$LINE" >> "$FILE"
     fi
 
+################################################################################
 # Git Bash on Windows
+################################################################################
 elif [[ "$system_type" = *"MINGW64_NT"* ]]; then
     echo ==============================================================================
     echo Running Windows Bootstrap...
