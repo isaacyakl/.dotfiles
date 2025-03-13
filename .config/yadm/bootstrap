@@ -126,9 +126,11 @@ git config --global user.name "yak";
 git config --global user.email "yak@isaacyakl.com";
 git config --global init.defaultBranch "main";
 
-# https://stackoverflow.com/a/22575737
-git config --system core.longpaths true # system wide
-git config --global core.longpaths true # current user's repos
+if [[ "$system_type" = *"MINGW64_NT"* ]]; then
+    # https://stackoverflow.com/a/22575737
+    git config --system core.longpaths true # system wide
+    git config --global core.longpaths true # current user's repos
+fi
 
 # done
 echo ==============================================================================
