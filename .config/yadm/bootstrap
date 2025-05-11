@@ -57,6 +57,14 @@ if [ "$system_type" = "Linux" ]; then
         sudo apt-get install curl
     fi
 
+    # 7z
+    if type -a 7z >&2; then
+        echo 7z already installed
+    else
+        echo Installing 7z
+        sudo apt install p7zip-full p7zip-rar
+    fi
+
     # nodejs
     # if type -a node >&2; then
     #     echo Node already installed
