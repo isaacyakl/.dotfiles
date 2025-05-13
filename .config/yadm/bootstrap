@@ -88,41 +88,6 @@ elif [ "$system_type" = "Linux" ]; then
         curl -fsSL https://deno.land/install.sh | sh
     fi
 
-    # nodejs
-    # if ! type -a node >&2; then
-    #     echo Installing Node
-    #     sudo apt-get install nodejs
-    # fi
-
-    # nvm
-    if ! type -a nvm >&2; then # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
-        echo Installing nvm
-        if type -a node >&2; then
-            echo Node detected
-            echo Uninstalling nodejs
-            # https://askubuntu.com/questions/786015/how-to-remove-nodejs-from-ubuntu-16-04
-            sudo apt-get purge --auto-remove nodejs
-        fi
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
-
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-        if type -a nvm >&2; then
-            echo NVM installed successfully
-            echo Installing Node LTS
-            nvm install --lts
-            echo Activating Node LTS
-            nvm use --lts
-        else
-            echo NVM installation failed
-            sleep 10
-        fi
-    fi
-
-    # auto use nvm?
-
     # angular cli global install?
 
     echo Setting up ssh-agent auto-launch
@@ -131,6 +96,44 @@ elif [ "$system_type" = "Linux" ]; then
     is_line_in_file "$LINE" "$FILE"
     if ! is_line_in_file "$LINE" "$FILE"; then
         printf "\n\n%s\n" "$LINE" >> "$FILE"
+    fi
+fi
+
+################################################################################
+# Bootstrap common
+################################################################################
+if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
+    # nvm + node
+    if ! type -a nvm >&2; then
+        # https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating
+        # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
+        echo Installing nvm and Node
+        
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+
+        # this is called to load nvm right away so that we can install node versions below
+        export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+
+        echo NVM installed successfully
+
+        echo Installing Node LTS
+        nvm install --lts
+
+        echo Installing the current Node release
+        nvm install node
+        
+        echo Activating Node LTS
+        nvm use --lts
+
+        echo Setting up nvm use defaults auto-launch
+        # if .nvmrc exists, use it else use the LTS version
+        LINE="if [ -f .nvmrc ]; then nvm install; nvm use; else nvm install --lts; nvm use --lts; fi"
+        FILE=".bashrc"
+        is_line_in_file "$LINE" "$FILE"
+        if ! is_line_in_file "$LINE" "$FILE"; then
+            printf "\n\n%s\n" "$LINE" >> "$FILE"
+        fi
     fi
 fi
 
