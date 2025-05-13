@@ -113,18 +113,15 @@ if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
 
     echo NVM installed successfully
 
-    echo Installing Node LTS
-    nvm install --lts
-
     echo Installing the current Node release
     nvm install node
-    
-    echo Activating Node LTS
-    nvm use --lts
 
+    echo Installing Node LTS
+    nvm install --lts
+    
     echo Setting up nvm use defaults auto-launch
     # if .nvmrc exists, use it else use the LTS version
-    LINE="if [ -f .nvmrc ]; then nvm install; nvm use; else nvm install --lts; nvm use --lts; fi"
+    LINE="if [ -f .nvmrc ]; then nvm install; else nvm install --lts; fi"
     FILE=".bashrc"
     is_line_in_file "$LINE" "$FILE"
     if ! is_line_in_file "$LINE" "$FILE"; then
