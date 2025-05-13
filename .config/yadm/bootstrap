@@ -4,6 +4,10 @@
 
 cd "$HOME" || { echo "Bootstrapping failed: Could not cd into $HOME"; exit 1; }
 
+###############################################################################
+# Set up helper symbols
+###############################################################################
+
 # Create .bashrc if it doesn't exist
 BASHRC=".bashrc"
 
@@ -30,10 +34,27 @@ function is_line_in_file() {
 }
 
 system_type=$(uname -s)
+
 ################################################################################
-# Linux
+# Bootstrap Windows
 ################################################################################
-if [ "$system_type" = "Linux" ]; then
+if [[ "$system_type" = *"MINGW64_NT"* ]]; then
+    echo ==============================================================================
+    echo Running Windows Bootstrap...
+    echo ==============================================================================
+    
+    echo Setting up ssh-agent auto-launch
+    LINE="source ~/.config/yadm/windows-ssh-agent-auto-launch"
+    FILE=".bashrc"
+    is_line_in_file "$LINE" "$FILE"
+    if ! is_line_in_file "$LINE" "$FILE"; then
+        printf "\n\n%s\n" "$LINE" >> "$FILE"
+    fi
+
+################################################################################
+# Bootstrap Linux
+################################################################################
+elif [ "$system_type" = "Linux" ]; then
     echo ==============================================================================
     echo Running Linux Bootstrap...
     echo ==============================================================================
@@ -50,33 +71,31 @@ if [ "$system_type" = "Linux" ]; then
     sudo apt-get install git
 
     # curl
-    if type -a curl >&2; then
-        echo curl already installed
-    else
+    if ! type -a curl >&2; then
         echo Installing curl
         sudo apt-get install curl
     fi
 
     # 7z
-    if type -a 7z >&2; then
-        echo 7z already installed
-    else
+    if ! type -a 7z >&2; then
         echo Installing 7z
         sudo apt install p7zip-full p7zip-rar
     fi
 
+    # deno
+    if ! type -a deno >&2; then
+        echo Installing Deno
+        curl -fsSL https://deno.land/install.sh | sh
+    fi
+
     # nodejs
-    # if type -a node >&2; then
-    #     echo Node already installed
-    # else
+    # if ! type -a node >&2; then
     #     echo Installing Node
     #     sudo apt-get install nodejs
     # fi
 
     # nvm
-    if type -a nvm >&2; then
-        echo NVM already installed
-    else # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
+    if ! type -a nvm >&2; then # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
         echo Installing nvm
         if type -a node >&2; then
             echo Node detected
@@ -98,10 +117,13 @@ if [ "$system_type" = "Linux" ]; then
             nvm use --lts
         else
             echo NVM installation failed
+            sleep 10
         fi
     fi
 
-    # tmux
+    # auto use nvm?
+
+    # angular cli global install?
 
     echo Setting up ssh-agent auto-launch
     LINE="source ~/.config/yadm/linux-ssh-agent-auto-launch"
@@ -110,23 +132,11 @@ if [ "$system_type" = "Linux" ]; then
     if ! is_line_in_file "$LINE" "$FILE"; then
         printf "\n\n%s\n" "$LINE" >> "$FILE"
     fi
+fi
 
 ################################################################################
-# Git Bash on Windows
+# Configure git
 ################################################################################
-elif [[ "$system_type" = *"MINGW64_NT"* ]]; then
-    echo ==============================================================================
-    echo Running Windows Bootstrap...
-    echo ==============================================================================
-    
-    echo Setting up ssh-agent auto-launch
-    LINE="source ~/.config/yadm/windows-ssh-agent-auto-launch"
-    FILE=".bashrc"
-    is_line_in_file "$LINE" "$FILE"
-    if ! is_line_in_file "$LINE" "$FILE"; then
-        printf "\n\n%s\n" "$LINE" >> "$FILE"
-    fi
-fi
 
 # Instead of using .gitconfig I am conditionally setting git config values
 echo Configuring git
@@ -138,6 +148,14 @@ if [[ "$system_type" = *"MINGW64_NT"* ]]; then
     # https://stackoverflow.com/a/22575737
     git config --system core.longpaths true # system wide
     git config --global core.longpaths true # current user's repos
+fi
+
+# Check if this is WSL
+if [ "$system_type" = "Linux" ] && [[ -f "/etc/wsl.conf" ]]; then # https://www.reddit.com/r/bashonubuntuonwindows/comments/12jzdhn/unc_paths_not_supported/
+    echo Applying WSL config
+    sudo mv /etc/wsl.conf /etc/wsl.conf.bak
+    sudo cp ~/.config/yadm/wsl.conf /etc/wsl.conf
+    echo "Please restart WSL to apply config changes."
 fi
 
 # done
