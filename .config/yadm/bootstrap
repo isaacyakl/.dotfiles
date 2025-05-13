@@ -88,8 +88,6 @@ elif [ "$system_type" = "Linux" ]; then
         curl -fsSL https://deno.land/install.sh | sh
     fi
 
-    # angular cli global install?
-
     echo Setting up ssh-agent auto-launch
     LINE="source ~/.config/yadm/linux-ssh-agent-auto-launch"
     FILE=".bashrc"
@@ -104,36 +102,45 @@ fi
 ################################################################################
 if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
     # nvm + node
-    if ! type -a nvm >&2; then
-        # https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating
-        # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
-        echo Installing nvm and Node
-        
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+    # https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating
+    # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
+    echo Installing nvm and Node
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 
-        # this is called to load nvm right away so that we can install node versions below
-        export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+    # this is called to load nvm right away so that we can install node versions below
+    export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
-        echo NVM installed successfully
+    echo NVM installed successfully
 
-        echo Installing Node LTS
-        nvm install --lts
+    echo Installing Node LTS
+    nvm install --lts
 
-        echo Installing the current Node release
-        nvm install node
-        
-        echo Activating Node LTS
-        nvm use --lts
+    echo Installing the current Node release
+    nvm install node
+    
+    echo Activating Node LTS
+    nvm use --lts
 
-        echo Setting up nvm use defaults auto-launch
-        # if .nvmrc exists, use it else use the LTS version
-        LINE="if [ -f .nvmrc ]; then nvm install; nvm use; else nvm install --lts; nvm use --lts; fi"
-        FILE=".bashrc"
-        is_line_in_file "$LINE" "$FILE"
-        if ! is_line_in_file "$LINE" "$FILE"; then
-            printf "\n\n%s\n" "$LINE" >> "$FILE"
-        fi
+    echo Setting up nvm use defaults auto-launch
+    # if .nvmrc exists, use it else use the LTS version
+    LINE="if [ -f .nvmrc ]; then nvm install; nvm use; else nvm install --lts; nvm use --lts; fi"
+    FILE=".bashrc"
+    is_line_in_file "$LINE" "$FILE"
+    if ! is_line_in_file "$LINE" "$FILE"; then
+        printf "\n\n%s\n" "$LINE" >> "$FILE"
+    fi
+
+    # Angular CLI global
+    echo Installing Angular CLI globally
+    npm install -g @angular/cli
+
+    echo Setting up .dotfiles auto-update check
+    LINE="if ! yadm pull | grep -q 'Already up to date.'; then echo '.dotfiles update available'; fi"
+    FILE=".bashrc"
+    is_line_in_file "$LINE" "$FILE"
+    if ! is_line_in_file "$LINE" "$FILE"; then
+        printf "\n\n%s\n" "$LINE" >> "$FILE"
     fi
 fi
 
