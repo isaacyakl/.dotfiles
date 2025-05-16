@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# This entire script should be idempotent so it can be run multiple times.
+# ! This entire script should be idempotent so it can be run multiple times.
 
 cd "$HOME" || { echo "Bootstrapping failed: Could not cd into $HOME"; exit 1; }
 
-###############################################################################
-# Set up helper symbols
-###############################################################################
+echo "=============================================================================="
+echo " > Setting up helper symbols "
+echo "=============================================================================="
 
 # Create .bashrc if it doesn't exist
 BASHRC=".bashrc"
@@ -35,13 +35,32 @@ function is_line_in_file() {
 
 system_type=$(uname -s)
 
-################################################################################
-# Bootstrap Windows
-################################################################################
+echo "=============================================================================="
+echo " > Cleaning up old goober "
+echo "=============================================================================="
+
+# Remove old nvm use defaults auto-launch
+LINE="if [ -f .nvmrc ]; then nvm install; else nvm install --lts; fi"
+FILE=".bashrc"
+is_line_in_file "$LINE" "$FILE"
+if is_line_in_file "$LINE" "$FILE"; then
+    echo "Cleaning up old nvm use defaults auto-launch"
+    sed -i "\|if \[ -f .nvmrc \]; then nvm install; else nvm install --lts; fi|d" "$FILE"
+fi
+
+# Remove old yadm auto-update check
+LINE="if ! yadm pull | grep -q 'Already up to date.'; then echo '.dotfiles update available'; fi"
+FILE=".bashrc"
+is_line_in_file "$LINE" "$FILE"
+if is_line_in_file "$LINE" "$FILE"; then
+    echo "Cleaning up old yadm auto-update check"
+    sed -i "/$LINE/d" "$FILE"
+fi
+
 if [[ "$system_type" = *"MINGW64_NT"* ]]; then
-    echo ==============================================================================
-    echo Running Windows Bootstrap...
-    echo ==============================================================================
+    echo "=============================================================================="
+    echo " > Running Windows Bootstrap "
+    echo "=============================================================================="
     
     echo Setting up ssh-agent auto-launch
     LINE="source ~/.config/yadm/windows-ssh-agent-auto-launch"
@@ -51,18 +70,15 @@ if [[ "$system_type" = *"MINGW64_NT"* ]]; then
         printf "\n\n%s\n" "$LINE" >> "$FILE"
     fi
 
-################################################################################
-# Bootstrap Linux
-################################################################################
 elif [ "$system_type" = "Linux" ]; then
-    echo ==============================================================================
-    echo Running Linux Bootstrap...
-    echo ==============================================================================
+    echo "=============================================================================="
+    echo " > Running Linux Bootstrap "
+    echo "=============================================================================="
     
-    echo Updating and upgrading...
+    echo Updating and upgrading
     sudo apt update && sudo apt upgrade
     echo Finished updating and upgrading
-    echo Auto-removing unused packages...
+    echo Auto-removing unused packages
     sudo apt autoremove
     echo Finished auto-removing unused packages
 
@@ -97,9 +113,9 @@ elif [ "$system_type" = "Linux" ]; then
     fi
 fi
 
-################################################################################
-# Bootstrap common
-################################################################################
+echo "=============================================================================="
+echo " > Running Common Bootstrap " 
+echo "=============================================================================="
 if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
     # nvm + node
     # https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating
@@ -119,9 +135,8 @@ if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
     echo Installing Node LTS
     nvm install --lts
     
-    echo Setting up nvm use defaults auto-launch
-    # if .nvmrc exists, use it else use the LTS version
-    LINE="if [ -f .nvmrc ]; then nvm install; else nvm install --lts; fi"
+    echo Setting up cdnvm
+    LINE=". "~/.config/yadm/cdnvm.sh""
     FILE=".bashrc"
     is_line_in_file "$LINE" "$FILE"
     if ! is_line_in_file "$LINE" "$FILE"; then
@@ -132,8 +147,8 @@ if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
     echo Installing Angular CLI globally
     npm install -g @angular/cli
 
-    echo Setting up .dotfiles auto-update check
-    LINE="if ! yadm pull | grep -q 'Already up to date.'; then echo '.dotfiles update available'; fi"
+    echo Setting up .dotfiles updater
+    LINE=". "~/.config/yadm/dotfiles-updater.sh""
     FILE=".bashrc"
     is_line_in_file "$LINE" "$FILE"
     if ! is_line_in_file "$LINE" "$FILE"; then
@@ -141,12 +156,10 @@ if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
     fi
 fi
 
-################################################################################
-# Configure git
-################################################################################
-
-# Instead of using .gitconfig I am conditionally setting git config values
-echo Configuring git
+echo "=============================================================================="
+echo " > Configuring git "
+echo "=============================================================================="
+# Instead of using .gitconfig I am setting them from the command line
 git config --global user.name "yak";
 git config --global user.email "yak@isaacyakl.com";
 git config --global init.defaultBranch "main";
@@ -154,20 +167,26 @@ git config --global init.defaultBranch "main";
 if [[ "$system_type" = *"MINGW64_NT"* ]]; then
     # https://stackoverflow.com/a/22575737
     git config --system core.longpaths true # system wide (not usually necessary) (requires Administrator privileges to set)
+    echo "If the previously command was denied, it is not critical. Setting core.longpaths at the --system level is usually not necessary."
     git config --global core.longpaths true # current user's repos
 fi
 
 # Check if this is WSL
 if [ "$system_type" = "Linux" ] && [[ -f "/etc/wsl.conf" ]]; then # https://www.reddit.com/r/bashonubuntuonwindows/comments/12jzdhn/unc_paths_not_supported/
-    echo Applying WSL config
+    echo "=============================================================================="
+    echo " > Applying WSL config "
+    echo "=============================================================================="
+    echo "Backing up existing wsl.conf to wsl.conf.bak"
     sudo mv /etc/wsl.conf /etc/wsl.conf.bak
     sudo cp ~/.config/yadm/wsl.conf /etc/wsl.conf
+    echo "Applied .dotfiles wsl.conf"
     echo "Please restart WSL to apply config changes."
 fi
 
 # done
-echo ==============================================================================
-echo Bootstrapping complete. Reloading shell...
-echo ==============================================================================
+echo "=============================================================================="
+echo " > Bootstrapping complete "
+echo "=============================================================================="
+echo "Reloading shell..."
 
 exec "$BASH"
