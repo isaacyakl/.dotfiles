@@ -173,14 +173,17 @@ fi
 
 # Check if this is WSL
 if [ "$system_type" = "Linux" ] && [[ -f "/etc/wsl.conf" ]]; then # https://www.reddit.com/r/bashonubuntuonwindows/comments/12jzdhn/unc_paths_not_supported/
-    echo "=============================================================================="
-    echo " > Applying WSL config "
-    echo "=============================================================================="
-    echo "Backing up existing wsl.conf to wsl.conf.bak"
-    sudo mv /etc/wsl.conf /etc/wsl.conf.bak
-    sudo cp ~/.config/yadm/wsl.conf /etc/wsl.conf
-    echo "Applied .dotfiles wsl.conf"
-    echo "Please restart WSL to apply config changes."
+    # compare the contents of /etc/wsl.conf and ~/.config/yadm/wsl.conf
+    if ! cmp -s /etc/wsl.conf ~/.config/yadm/wsl.conf; then
+        echo "=============================================================================="
+        echo " > Applying WSL config "
+        echo "=============================================================================="
+        echo "Backing up existing wsl.conf to wsl.conf.bak"
+        sudo mv /etc/wsl.conf /etc/wsl.conf.bak
+        sudo cp ~/.config/yadm/wsl.conf /etc/wsl.conf
+        echo "Applied wsl.conf from .dotfiles "
+        echo "Please restart WSL to apply config changes."
+    fi
 fi
 
 # done
