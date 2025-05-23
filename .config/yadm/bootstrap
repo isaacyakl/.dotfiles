@@ -147,6 +147,10 @@ if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
     echo Installing Angular CLI globally
     npm install -g @angular/cli
 
+    # Nx global
+    echo Installing Nx globally
+    npm add --global nx@latest
+
     echo Setting up .dotfiles updater
     LINE=". "~/.config/yadm/dotfiles-updater.sh""
     FILE=".bashrc"
