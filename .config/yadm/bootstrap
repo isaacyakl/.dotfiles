@@ -40,21 +40,21 @@ echo " > Cleaning up old goober "
 echo "=============================================================================="
 
 # Remove old nvm use defaults auto-launch
-LINE="if [ -f .nvmrc ]; then nvm install; else nvm install --lts; fi"
+OLD_LINE="if [ -f .nvmrc ]; then nvm install; else nvm install --lts; fi"
 FILE=".bashrc"
-is_line_in_file "$LINE" "$FILE"
-if is_line_in_file "$LINE" "$FILE"; then
+is_line_in_file "$OLD_LINE" "$FILE"
+if is_line_in_file "$OLD_LINE" "$FILE"; then
     echo "Cleaning up old nvm use defaults auto-launch"
     sed -i "\|if \[ -f .nvmrc \]; then nvm install; else nvm install --lts; fi|d" "$FILE"
 fi
 
 # Remove old yadm auto-update check
-LINE="if ! yadm pull | grep -q 'Already up to date.'; then echo '.dotfiles update available'; fi"
+OLD_LINE="if ! yadm pull | grep -q 'Already up to date.'; then echo '.dotfiles update available'; fi"
 FILE=".bashrc"
-is_line_in_file "$LINE" "$FILE"
-if is_line_in_file "$LINE" "$FILE"; then
+is_line_in_file "$OLD_LINE" "$FILE"
+if is_line_in_file "$OLD_LINE" "$FILE"; then
     echo "Cleaning up old yadm auto-update check"
-    sed -i "/$LINE/d" "$FILE"
+    sed -i "\|$OLD_LINE|d" "$FILE"
 fi
 
 if [[ "$system_type" = *"MINGW64_NT"* ]]; then
@@ -72,7 +72,7 @@ if [[ "$system_type" = *"MINGW64_NT"* ]]; then
 
 elif [ "$system_type" = "Linux" ]; then
     echo "=============================================================================="
-    echo " > Running Linux Bootstrap "
+    echo " > Running Linux / WSL Bootstrap "
     echo "=============================================================================="
     
     echo Updating and upgrading
@@ -117,6 +117,16 @@ echo "==========================================================================
 echo " > Running Common Bootstrap " 
 echo "=============================================================================="
 if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
+
+    echo Setting up .dotfiles updater
+    LINE=". "~/.config/yadm/dotfiles-updater.sh""
+    FILE=".bashrc"
+    is_line_in_file "$LINE" "$FILE"
+    if ! is_line_in_file "$LINE" "$FILE"; then
+        printf "\n\n%s\n" "$LINE" >> "$FILE"
+        chmod +x ~/.config/yadm/dotfiles-updater.sh
+    fi
+
     # nvm + node
     # https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating
     # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
@@ -141,23 +151,16 @@ if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
     is_line_in_file "$LINE" "$FILE"
     if ! is_line_in_file "$LINE" "$FILE"; then
         printf "\n\n%s\n" "$LINE" >> "$FILE"
+        chmod +x ~/.config/yadm/cdnvm.sh
     fi
+    . ~/.config/yadm/cdnvm.sh # make sure cdnvm is loaded right away
 
-    # Angular CLI global
     echo Installing Angular CLI globally
     npm install -g @angular/cli
 
-    # Nx global
     echo Installing Nx globally
     npm add --global nx@latest
-
-    echo Setting up .dotfiles updater
-    LINE=". "~/.config/yadm/dotfiles-updater.sh""
-    FILE=".bashrc"
-    is_line_in_file "$LINE" "$FILE"
-    if ! is_line_in_file "$LINE" "$FILE"; then
-        printf "\n\n%s\n" "$LINE" >> "$FILE"
-    fi
+    
 fi
 
 echo "=============================================================================="
