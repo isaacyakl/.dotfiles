@@ -16,6 +16,29 @@ if [[ ! -f "$BASHRC" ]]; then
   echo "Created: $BASHRC"
 fi
 
+system_type=$(uname -s)
+
+# if this is WSL
+if [ "$system_type" = "Linux" ] && [[ -f "/etc/wsl.conf" ]]; then
+    IS_WSL=true
+else
+    IS_WSL=false
+fi
+
+# if this is Git Bash in Windows
+if [[ "$system_type" = *"MINGW64_NT"* ]]; then
+    IS_WINDOWS_GIT_BASH=true
+else
+    IS_WINDOWS_GIT_BASH=false
+fi
+
+# if this is Linux
+if [ "$system_type" = "Linux" ]; then
+    IS_LINUX=true
+else
+    IS_LINUX=false
+fi
+
 function is_line_in_file() {
   local line="$1"
   local file="$2"
@@ -43,8 +66,6 @@ function is_command_available() {
   fi
 }
 
-system_type=$(uname -s)
-
 echo "=============================================================================="
 echo " > Cleaning up old goober "
 echo "=============================================================================="
@@ -67,10 +88,17 @@ if is_line_in_file "$OLD_LINE" "$FILE"; then
     sed -i "\|$OLD_LINE|d" "$FILE"
 fi
 
-if [[ "$system_type" = *"MINGW64_NT"* ]]; then
+if $IS_WINDOWS_GIT_BASH; then
     echo "=============================================================================="
     echo " > Running Windows Bootstrap "
     echo "=============================================================================="
+
+    echo "Running PowerShell bootstrap script"
+    if powershell.exe -ExecutionPolicy Bypass -File "~/.config/yadm/bootstrap.ps1"; then
+        echo "PowerShell bootstrap completed successfully"
+    else
+        echo "PowerShell bootstrap failed with exit code $?"
+    fi
     
     echo Setting up ssh-agent auto-launch
     LINE="source ~/.config/yadm/windows-ssh-agent-auto-launch"
@@ -80,7 +108,7 @@ if [[ "$system_type" = *"MINGW64_NT"* ]]; then
         printf "\n\n%s\n" "$LINE" >> "$FILE"
     fi
 
-elif [ "$system_type" = "Linux" ]; then
+elif $IS_LINUX; then
     echo "=============================================================================="
     echo " > Running Linux / WSL Bootstrap "
     echo "=============================================================================="
@@ -114,6 +142,11 @@ elif [ "$system_type" = "Linux" ]; then
         curl -fsSL https://deno.land/install.sh | sh
     fi
 
+    if ! is_command_available shellcheck; then
+        echo Installing ShellCheck
+        sudo apt install shellcheck
+    fi
+
     echo Setting up ssh-agent auto-launch
     LINE="source ~/.config/yadm/linux-ssh-agent-auto-launch"
     FILE=".bashrc"
@@ -126,7 +159,7 @@ fi
 echo "=============================================================================="
 echo " > Running Common Bootstrap " 
 echo "=============================================================================="
-if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
+if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
 
     echo Setting up .dotfiles updater
     LINE=". "~/.config/yadm/dotfiles-updater.sh""
@@ -177,6 +210,7 @@ if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
         echo Installing Nx globally
         npm add --global nx
     fi
+
 fi
 
 echo "=============================================================================="
@@ -187,7 +221,7 @@ git config --global user.name "yak";
 git config --global user.email "yak@isaacyakl.com";
 git config --global init.defaultBranch "main";
 
-if [[ "$system_type" = *"MINGW64_NT"* ]]; then
+if $IS_WINDOWS_GIT_BASH; then
     # https://stackoverflow.com/a/22575737
     git config --system core.longpaths true # system wide (not usually necessary) (requires Administrator privileges to set)
     echo "If the previous command was denied, it is not critical. Setting core.longpaths at the --system level is usually not necessary."
@@ -195,7 +229,7 @@ if [[ "$system_type" = *"MINGW64_NT"* ]]; then
 fi
 
 # Check if this is WSL
-if [ "$system_type" = "Linux" ] && [[ -f "/etc/wsl.conf" ]]; then # https://www.reddit.com/r/bashonubuntuonwindows/comments/12jzdhn/unc_paths_not_supported/
+if $IS_WSL; then # https://www.reddit.com/r/bashonubuntuonwindows/comments/12jzdhn/unc_paths_not_supported/
     # compare the contents of /etc/wsl.conf and ~/.config/yadm/wsl.conf
     if ! cmp -s /etc/wsl.conf ~/.config/yadm/wsl.conf; then
         echo "=============================================================================="
