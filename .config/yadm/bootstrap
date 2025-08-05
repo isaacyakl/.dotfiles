@@ -94,7 +94,7 @@ if $IS_WINDOWS_GIT_BASH; then
     echo "=============================================================================="
 
     echo "Running PowerShell bootstrap script"
-    if powershell.exe -ExecutionPolicy Bypass -File "~/.config/yadm/bootstrap.ps1"; then
+    if powershell.exe -ExecutionPolicy Bypass -File ~/.config/yadm/bootstrap.ps1; then
         echo "PowerShell bootstrap completed successfully"
     else
         echo "PowerShell bootstrap failed with exit code $?"
