@@ -33,6 +33,16 @@ function is_line_in_file() {
   fi
 }
 
+function is_command_available() {
+  local cmd="$1"
+  
+  if command -v "$cmd" >/dev/null 2>&1; then
+    return 0 # Command is available
+  else
+    return 1 # Command not found
+  fi
+}
+
 system_type=$(uname -s)
 
 echo "=============================================================================="
@@ -87,19 +97,19 @@ elif [ "$system_type" = "Linux" ]; then
     sudo apt-get install git
 
     # curl
-    if ! type -a curl >&2; then
+    if ! is_command_available curl; then
         echo Installing curl
         sudo apt-get install curl
     fi
 
     # 7z
-    if ! type -a 7z >&2; then
+    if ! is_command_available 7z; then
         echo Installing 7z
         sudo apt install p7zip-full p7zip-rar
     fi
 
     # deno
-    if ! type -a deno >&2; then
+    if ! is_command_available deno; then
         echo Installing Deno
         curl -fsSL https://deno.land/install.sh | sh
     fi
@@ -130,14 +140,12 @@ if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
     # nvm + node
     # https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating
     # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
-    echo Installing nvm and Node
+    echo Installing nvm
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 
     # this is called to load nvm right away so that we can install node versions below
     export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-
-    echo NVM installed successfully
 
     echo Installing the current Node release
     nvm install node
@@ -155,12 +163,20 @@ if [[ "$system_type" = *"MINGW64_NT"* ]] || [[ "$system_type" = "Linux" ]]; then
     fi
     . ~/.config/yadm/cdnvm.sh # make sure cdnvm is loaded right away
 
-    echo Installing Angular CLI globally
-    npm install -g @angular/cli
+    if ! is_command_available tsc; then
+        echo Installing TypeScript globally
+        npm install -g typescript
+    fi
 
-    echo Installing Nx globally
-    npm add --global nx@latest
-    
+    if ! is_command_available ng; then
+        echo Installing Angular CLI globally
+        npm install -g @angular/cli
+    fi
+
+    if ! is_command_available nx; then
+        echo Installing Nx globally
+        npm add --global nx
+    fi
 fi
 
 echo "=============================================================================="
