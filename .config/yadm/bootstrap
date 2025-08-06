@@ -151,27 +151,27 @@ if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
 
         echo Installing Node LTS
         nvm install --lts
-    
-        if $IS_LINUX; then
+    fi
+
+    if $IS_LINUX; then
+        # cdnvm is a tool that will automatically switch node versions based on the .nvmrc file in the current directory or parent directories at each cd
+        CDNVM=". $HOME/.config/yadm/cdnvm.sh"
+        is_line_in_file "$CDNVM" "$BASHRC"
+        if ! is_line_in_file "$CDNVM" "$BASHRC"; then
             echo Setting up cdnvm
-            # cdnvm is a tool that will automatically switch node versions based on the .nvmrc file in the current directory or parent directories at each cd
-            CDNVM=". $HOME/.config/yadm/cdnvm.sh"
-            is_line_in_file "$CDNVM" "$BASHRC"
-            if ! is_line_in_file "$CDNVM" "$BASHRC"; then
-                printf "\n\n%s\n" "$CDNVM" >> "$BASHRC"
-                chmod +x "$CDNVM"
-            fi
-            # shellcheck source=$HOME/.config/yadm/cdnvm.sh
-            . "$CDNVM" # make sure cdnvm is loaded right away
-        elif $IS_WINDOWS_GIT_BASH; then
+            printf "\n\n%s\n" "$CDNVM" >> "$BASHRC"
+            chmod +x "$CDNVM"
+        fi
+        # shellcheck source=$HOME/.config/yadm/cdnvm.sh
+        . "$CDNVM" # make sure cdnvm is loaded right away
+    elif $IS_WINDOWS_GIT_BASH; then
+        # This will automatically use the version specified in .nvmrc if it exists
+        # We do not use cdnvm in Windows Git Bash because of performance issues with the cdnvm script
+        NVM_USE="if [[ -f .nvmrc ]]; then nvm use; fi"
+        is_line_in_file "$NVM_USE" "$BASHRC"
+        if ! is_line_in_file "$NVM_USE" "$BASHRC"; then
             echo Setting up auto nvm use
-                # This will automatically use the version specified in .nvmrc if it exists
-                # We do not use cdnvm in Windows Git Bash because of performance issues with the cdnvm script
-                NVM_USE="if [[ -f .nvmrc ]]; then nvm use; fi"
-                is_line_in_file "$NVM_USE" "$BASHRC"
-                if ! is_line_in_file "$NVM_USE" "$BASHRC"; then
-                    printf "\n\n%s\n" "$NVM_USE" >> "$BASHRC"
-                fi
+            printf "\n\n%s\n" "$NVM_USE" >> "$BASHRC"
         fi
     fi
     
