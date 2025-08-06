@@ -133,6 +133,9 @@ echo "==========================================================================
 echo " > Running Common Bootstrap " 
 echo "=============================================================================="
 if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
+# When running common installs/updates always install the programs to make sure the latest
+# versions are installed, because Windows Git Bash does not include an apt update step like
+# Linux.
 
     echo Setting up .dotfiles updater
     DOTFILES_UPDATER=". $HOME/.config/yadm/dotfiles-updater.sh"
@@ -142,24 +145,21 @@ if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
         chmod +x "$DOTFILES_UPDATER"
     fi
 
-    # setup and configure nvm + node
-    if ! is_command_available nvm; then
-        # nvm + node
-        # https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating
-        # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
-        echo Installing nvm
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+    # setup, update, and configure nvm + node
+    # https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating
+    # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
+    echo Installing/updating nvm
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 
-        # this is called to load nvm right away so that we can install node versions below
-        export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+    # this is called to load nvm right away so that we can install node versions below
+    export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
-        echo Installing the current Node release
-        nvm install node
+    echo Installing the current Node release
+    nvm install node
 
-        echo Installing Node LTS
-        nvm install --lts
-    fi
+    echo Installing Node LTS
+    nvm install --lts
 
     if $IS_LINUX; then
         # cdnvm is a tool that will automatically switch node versions based on the .nvmrc file in the current directory or parent directories at each cd
@@ -182,20 +182,14 @@ if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
         fi
     fi
     
-    if ! is_command_available tsc; then
-        echo Installing TypeScript globally
-        npm install -g typescript
-    fi
+    echo Installing TypeScript globally
+    npm install -g typescript
 
-    if ! is_command_available ng; then
-        echo Installing Angular CLI globally
-        npm install -g @angular/cli
-    fi
+    echo Installing Angular CLI globally
+    npm install -g @angular/cli
 
-    if ! is_command_available nx; then
-        echo Installing Nx globally
-        npm add --global nx
-    fi
+    echo Installing Nx globally
+    npm add --global nx
 
 fi
 
@@ -226,6 +220,7 @@ git config --global init.defaultBranch "main";
 if $IS_WINDOWS_GIT_BASH; then
     # https://stackoverflow.com/a/22575737
     # https://gitforwindows.org/git-cannot-create-a-file-or-directory-with-a-long-path.html
+    echo "Setting git config --system core.longpaths true REQUIRES administrator privileges"
     git config --system core.longpaths true # system wide (not usually necessary) (requires Administrator privileges to set)
     echo "If the previous command was denied, it is not critical. Setting core.longpaths at the --system level is usually not necessary."
     git config --global core.longpaths true # current user's repos
