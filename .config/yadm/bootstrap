@@ -217,6 +217,7 @@ git config --global init.defaultBranch "main";
 
 if $IS_WINDOWS_GIT_BASH; then
     # https://stackoverflow.com/a/22575737
+    # https://gitforwindows.org/git-cannot-create-a-file-or-directory-with-a-long-path.html
     git config --system core.longpaths true # system wide (not usually necessary) (requires Administrator privileges to set)
     echo "If the previous command was denied, it is not critical. Setting core.longpaths at the --system level is usually not necessary."
     git config --global core.longpaths true # current user's repos
