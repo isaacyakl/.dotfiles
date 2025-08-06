@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ! This entire script should be idempotent so it can be run multiple times.
+# ! This and referenced scripts should be idempotent so bootstrapping can be run multiple times.
 
 cd "$HOME" || { echo "Bootstrapping failed: Could not cd into $HOME"; exit 1; }
 
@@ -8,85 +8,33 @@ echo "==========================================================================
 echo " > Setting up helper symbols "
 echo "=============================================================================="
 
-# Create .bashrc if it doesn't exist
-BASHRC=".bashrc"
-
-if [[ ! -f "$BASHRC" ]]; then
-  touch "$BASHRC"
-  echo "Created: $BASHRC"
-fi
-
-system_type=$(uname -s)
-
-# if this is WSL
-if [ "$system_type" = "Linux" ] && [[ -f "/etc/wsl.conf" ]]; then
-    IS_WSL=true
-else
-    IS_WSL=false
-fi
-
-# if this is Git Bash in Windows
-if [[ "$system_type" = *"MINGW64_NT"* ]]; then
-    IS_WINDOWS_GIT_BASH=true
-else
-    IS_WINDOWS_GIT_BASH=false
-fi
-
-# if this is Linux
-if [ "$system_type" = "Linux" ]; then
-    IS_LINUX=true
-else
-    IS_LINUX=false
-fi
-
-function is_line_in_file() {
-  local line="$1"
-  local file="$2"
-
-  # Check if file exists
-  if [[ ! -f "$file" ]]; then
-    return 1 # File not found
-  fi
-
-  # Check if the line exists in the file
-  if grep -Fxq "$line" "$file"; then
-    return 0 # Line found
-  else
-    return 1 # Line not found
-  fi
-}
-
-function is_command_available() {
-  local cmd="$1"
-  
-  if command -v "$cmd" >/dev/null 2>&1; then
-    return 0 # Command is available
-  else
-    return 1 # Command not found
-  fi
-}
+HELPERS="$HOME/.config/yadm/helpers.sh"
+chmod +x "$HELPERS"
+# shellcheck source=$HOME/.config/yadm/helpers.sh
+. "${HELPERS}"
 
 echo "=============================================================================="
 echo " > Cleaning up old goober "
 echo "=============================================================================="
 
-# Remove old nvm use defaults auto-launch
-OLD_LINE="if [ -f .nvmrc ]; then nvm install; else nvm install --lts; fi"
-FILE=".bashrc"
-is_line_in_file "$OLD_LINE" "$FILE"
-if is_line_in_file "$OLD_LINE" "$FILE"; then
-    echo "Cleaning up old nvm use defaults auto-launch"
-    sed -i "\|if \[ -f .nvmrc \]; then nvm install; else nvm install --lts; fi|d" "$FILE"
-fi
+CLEANUP="$HOME/.config/yadm/cleanup.sh"
+chmod +x "$CLEANUP"
+# shellcheck source=$HOME/.config/yadm/cleanup.sh
+. "${CLEANUP}"
 
-# Remove old yadm auto-update check
-OLD_LINE="if ! yadm pull | grep -q 'Already up to date.'; then echo '.dotfiles update available'; fi"
-FILE=".bashrc"
-is_line_in_file "$OLD_LINE" "$FILE"
-if is_line_in_file "$OLD_LINE" "$FILE"; then
-    echo "Cleaning up old yadm auto-update check"
-    sed -i "\|$OLD_LINE|d" "$FILE"
-fi
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 if $IS_WINDOWS_GIT_BASH; then
     echo "=============================================================================="
@@ -94,19 +42,27 @@ if $IS_WINDOWS_GIT_BASH; then
     echo "=============================================================================="
 
     echo "Running PowerShell bootstrap script"
-    if powershell.exe -ExecutionPolicy Bypass -File ~/.config/yadm/bootstrap.ps1; then
+    if powershell.exe -ExecutionPolicy Bypass -File "$HOME/.config/yadm/bootstrap.ps1"; then
         echo "PowerShell bootstrap completed successfully"
     else
         echo "PowerShell bootstrap failed with exit code $?"
     fi
     
     echo Setting up ssh-agent auto-launch
-    LINE="source ~/.config/yadm/windows-ssh-agent-auto-launch"
-    FILE=".bashrc"
-    is_line_in_file "$LINE" "$FILE"
-    if ! is_line_in_file "$LINE" "$FILE"; then
-        printf "\n\n%s\n" "$LINE" >> "$FILE"
+    WINDOWS_SSH_AGENT_AUTO_LAUNCH=". $HOME/.config/yadm/windows-ssh-agent-auto-launch.sh"
+    is_line_in_file "$WINDOWS_SSH_AGENT_AUTO_LAUNCH" "$BASHRC"
+    if ! is_line_in_file "$WINDOWS_SSH_AGENT_AUTO_LAUNCH" "$BASHRC"; then
+        printf "\n\n%s\n" "$WINDOWS_SSH_AGENT_AUTO_LAUNCH" >> "$BASHRC"
     fi
+
+
+
+
+
+
+
+
+
 
 elif $IS_LINUX; then
     echo "=============================================================================="
@@ -148,13 +104,22 @@ elif $IS_LINUX; then
     fi
 
     echo Setting up ssh-agent auto-launch
-    LINE="source ~/.config/yadm/linux-ssh-agent-auto-launch"
-    FILE=".bashrc"
-    is_line_in_file "$LINE" "$FILE"
-    if ! is_line_in_file "$LINE" "$FILE"; then
-        printf "\n\n%s\n" "$LINE" >> "$FILE"
+    LINUX_SSH_AGENT_AUTO_LAUNCH=". $HOME/.config/yadm/linux-ssh-agent-auto-launch.sh"
+    is_line_in_file "$LINUX_SSH_AGENT_AUTO_LAUNCH" "$BASHRC"
+    if ! is_line_in_file "$LINUX_SSH_AGENT_AUTO_LAUNCH" "$BASHRC"; then
+        printf "\n\n%s\n" "$LINUX_SSH_AGENT_AUTO_LAUNCH" >> "$BASHRC"
+        chmod +x "$LINUX_SSH_AGENT_AUTO_LAUNCH"
     fi
 fi
+
+
+
+
+
+
+
+
+
 
 echo "=============================================================================="
 echo " > Running Common Bootstrap " 
@@ -162,40 +127,52 @@ echo "==========================================================================
 if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
 
     echo Setting up .dotfiles updater
-    LINE=". "~/.config/yadm/dotfiles-updater.sh""
-    FILE=".bashrc"
-    is_line_in_file "$LINE" "$FILE"
-    if ! is_line_in_file "$LINE" "$FILE"; then
-        printf "\n\n%s\n" "$LINE" >> "$FILE"
-        chmod +x ~/.config/yadm/dotfiles-updater.sh
+    DOTFILES_UPDATER=". $HOME/.config/yadm/dotfiles-updater.sh"
+    is_line_in_file "$DOTFILES_UPDATER" "$BASHRC"
+    if ! is_line_in_file "$DOTFILES_UPDATER" "$BASHRC"; then
+        printf "\n\n%s\n" "$DOTFILES_UPDATER" >> "$BASHRC"
+        chmod +x "$DOTFILES_UPDATER"
     fi
 
-    # nvm + node
-    # https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating
-    # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
-    echo Installing nvm
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+    nvm --version
 
-    # this is called to load nvm right away so that we can install node versions below
-    export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+    if ! is_command_available nvm; then
+        # nvm + node
+        # https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating
+        # https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl
+        echo Installing nvm
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 
-    echo Installing the current Node release
-    nvm install node
+        # this is called to load nvm right away so that we can install node versions below
+        export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
-    echo Installing Node LTS
-    nvm install --lts
+        echo Installing the current Node release
+        nvm install node
+
+        echo Installing Node LTS
+        nvm install --lts
+    fi
+
+    if $IS_LINUX; then
+        echo Setting up cdnvm
+        CDNVM=". $HOME/.config/yadm/cdnvm.sh"
+        is_line_in_file "$CDNVM" "$BASHRC"
+        if ! is_line_in_file "$CDNVM" "$BASHRC"; then
+            printf "\n\n%s\n" "$CDNVM" >> "$BASHRC"
+            chmod +x "$CDNVM"
+        fi
+        # shellcheck source=$HOME/.config/yadm/cdnvm.sh
+        . "$CDNVM" # make sure cdnvm is loaded right away
+    elif $IS_WINDOWS_GIT_BASH; then
+        echo Setting up nvm use
+            NVM_USE="nvm use"
+            is_line_in_file "$NVM_USE" "$BASHRC"
+            if ! is_line_in_file "$NVM_USE" "$BASHRC"; then
+                printf "\n\n%s\n" "$NVM_USE" >> "$BASHRC"
+            fi
+    fi
     
-    echo Setting up cdnvm
-    LINE=". "~/.config/yadm/cdnvm.sh""
-    FILE=".bashrc"
-    is_line_in_file "$LINE" "$FILE"
-    if ! is_line_in_file "$LINE" "$FILE"; then
-        printf "\n\n%s\n" "$LINE" >> "$FILE"
-        chmod +x ~/.config/yadm/cdnvm.sh
-    fi
-    . ~/.config/yadm/cdnvm.sh # make sure cdnvm is loaded right away
-
     if ! is_command_available tsc; then
         echo Installing TypeScript globally
         npm install -g typescript
@@ -212,6 +189,22 @@ if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
     fi
 
 fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 echo "=============================================================================="
 echo " > Configuring git "
@@ -230,14 +223,14 @@ fi
 
 # Check if this is WSL
 if $IS_WSL; then # https://www.reddit.com/r/bashonubuntuonwindows/comments/12jzdhn/unc_paths_not_supported/
-    # compare the contents of /etc/wsl.conf and ~/.config/yadm/wsl.conf
-    if ! cmp -s /etc/wsl.conf ~/.config/yadm/wsl.conf; then
+    # compare the contents of /etc/wsl.conf and $HOME/.config/yadm/wsl.conf
+    if ! cmp -s /etc/wsl.conf "$HOME/.config/yadm/wsl.conf"; then
         echo "=============================================================================="
         echo " > Applying WSL config "
         echo "=============================================================================="
         echo "Backing up existing wsl.conf to wsl.conf.bak"
         sudo mv /etc/wsl.conf /etc/wsl.conf.bak
-        sudo cp ~/.config/yadm/wsl.conf /etc/wsl.conf
+        sudo cp "$HOME/.config/yadm/wsl.conf" /etc/wsl.conf
         echo "Applied wsl.conf from .dotfiles "
         echo "Please restart WSL to apply config changes."
     fi
