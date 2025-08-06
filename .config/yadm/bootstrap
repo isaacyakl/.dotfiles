@@ -162,8 +162,7 @@ if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
             printf "\n\n%s\n" "$CDNVM" >> "$BASHRC"
             chmod +x "$CDNVM"
         fi
-        # shellcheck source=$HOME/.config/yadm/cdnvm.sh
-        . "$CDNVM" # make sure cdnvm is loaded right away
+        eval "$CDNVM" # make sure cdnvm is loaded right away
     elif $IS_WINDOWS_GIT_BASH; then
         # This will automatically use the version specified in .nvmrc if it exists
         # We do not use cdnvm in Windows Git Bash because of performance issues with the cdnvm script
