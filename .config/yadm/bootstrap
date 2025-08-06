@@ -47,7 +47,15 @@ if $IS_WINDOWS_GIT_BASH; then
     else
         echo "PowerShell bootstrap failed with exit code $?"
     fi
-    
+
+    if [[ -d "$HOME/.yadm-directory" ]]; then
+        # Linux installations use a package manager so yadm gets updated with apt update
+        echo Updating yadm on Windows
+        cd "$HOME/.yadm-directory" || { echo "Failed to cd into .yadm-directory"; exit 1; }
+        git pull
+        cd "$HOME" || { echo "Failed to cd back to HOME"; exit 1; }
+    fi
+
     echo Setting up ssh-agent auto-launch
     WINDOWS_SSH_AGENT_AUTO_LAUNCH=". $HOME/.config/yadm/windows-ssh-agent-auto-launch.sh"
     is_line_in_file "$WINDOWS_SSH_AGENT_AUTO_LAUNCH" "$BASHRC"
