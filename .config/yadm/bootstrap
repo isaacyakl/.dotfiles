@@ -189,15 +189,6 @@ if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
         fi
     fi
     
-    echo Installing TypeScript globally
-    npm install -g typescript
-
-    echo Installing Angular CLI globally
-    npm install -g @angular/cli
-
-    echo Installing Nx globally
-    npm add --global nx
-
 fi
 
 
