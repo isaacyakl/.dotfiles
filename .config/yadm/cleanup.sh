@@ -53,3 +53,14 @@ if is_line_in_file "$OLD_LINE" "$FILE"; then
     echo "Cleaning up old linux ssh-agent auto-launch"
     sed -i "\|$OLD_LINE|d" "$FILE"
 fi
+
+if $IS_LINUX && is_command_available yadm && [[ ! -d "$HOME/.yadm-project" ]]; then
+    # Remove linux package manager installations of yadm
+    # since we now git clone the latest version (see README.md)
+    sudo apt-get remove --purge yadm -y
+    sudo apt-get autoremove -y
+
+    # Install the cloned version of yadm
+    git clone https://github.com/yadm-dev/yadm.git "$HOME/.yadm-project";
+    sudo ln -s "$HOME/.yadm-project/yadm" /bin/yadm;
+fi

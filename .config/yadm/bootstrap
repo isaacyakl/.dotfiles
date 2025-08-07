@@ -48,13 +48,7 @@ if $IS_WINDOWS_GIT_BASH; then
         echo "PowerShell bootstrap failed with exit code $?"
     fi
 
-    if [[ -d "$HOME/.yadm-project" ]]; then
-        # Linux installations use a package manager so yadm gets updated with apt update
-        echo Updating yadm on Windows
-        cd "$HOME/.yadm-project" || { echo "Failed to cd into .yadm-project"; exit 1; }
-        git pull
-        cd "$HOME" || { echo "Failed to cd back to HOME"; exit 1; }
-    fi
+    
 
     echo Setting up ssh-agent auto-launch
     WINDOWS_SSH_AGENT_AUTO_LAUNCH=". $HOME/.config/yadm/windows-ssh-agent-auto-launch.sh"
@@ -136,6 +130,15 @@ if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
 # When running common installs/updates always install the programs to make sure the latest
 # versions are installed, because Windows Git Bash does not include an apt update step like
 # Linux.
+
+    if [[ -d "$HOME/.yadm-project" ]]; then
+        echo Updating yadm
+        cd "$HOME/.yadm-project" || { echo "Failed to cd into .yadm-project"; exit 1; }
+        git pull
+        cd "$HOME" || { echo "Failed to cd back to HOME"; exit 1; }
+    else
+        echo "WARNING: No .yadm-project directory found. Skipping yadm update."
+    fi
 
     echo Setting up .dotfiles updater
     DOTFILES_UPDATER=". $HOME/.config/yadm/dotfiles-updater.sh"
