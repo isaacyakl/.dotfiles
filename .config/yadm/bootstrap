@@ -2,6 +2,8 @@
 
 # ! This and referenced scripts should be idempotent so bootstrapping can be run multiple times.
 
+# ? Reminder: Any installations that use a script and not apt-get install, should probably run every time to update (i.e. do no wrap in if ! is_command_available)
+
 cd "$HOME" || { echo "Bootstrapping failed: Could not cd into $HOME"; exit 1; }
 
 echo "=============================================================================="
@@ -48,8 +50,6 @@ if $IS_WINDOWS_GIT_BASH; then
         echo "PowerShell bootstrap failed with exit code $?"
     fi
 
-    
-
     echo Setting up ssh-agent auto-launch
     WINDOWS_SSH_AGENT_AUTO_LAUNCH=". $HOME/.config/yadm/windows-ssh-agent-auto-launch.sh"
     is_line_in_file "$WINDOWS_SSH_AGENT_AUTO_LAUNCH" "$BASHRC"
@@ -94,12 +94,6 @@ elif $IS_LINUX; then
         sudo apt install p7zip-full p7zip-rar
     fi
 
-    # deno
-    if ! is_command_available deno; then
-        echo Installing Deno
-        curl -fsSL https://deno.land/install.sh | sh
-    fi
-
     if ! is_command_available shellcheck; then
         echo Installing ShellCheck
         sudo apt install shellcheck
@@ -127,9 +121,6 @@ echo "==========================================================================
 echo " > Running Common Bootstrap " 
 echo "=============================================================================="
 if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
-# When running common installs/updates always install the programs to make sure the latest
-# versions are installed, because Windows Git Bash does not include an apt update step like
-# Linux.
 
     if [[ -d "$HOME/.yadm-project" ]]; then
         echo Updating yadm
