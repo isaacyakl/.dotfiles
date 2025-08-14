@@ -149,9 +149,6 @@ if $IS_WINDOWS_GIT_BASH || $IS_LINUX; then
     export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
-    echo Installing Node LTS
-    nvm install --lts
-
     echo Installing the current Node release
     nvm install node
 
