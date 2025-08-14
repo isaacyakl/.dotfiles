@@ -82,19 +82,7 @@ elif $IS_LINUX; then
     echo Installing latest git version
     sudo apt-get install git
 
-    # curl
-    if ! is_command_available curl; then
-        echo Installing curl
-        sudo apt-get install curl
-    fi
-
-    # 7z
-    if ! is_command_available 7z; then
-        echo Installing 7z
-        sudo apt install p7zip-full p7zip-rar
-    fi
-
-    if ! is_command_available shellcheck; then
+    if ! is_command_available shellcheck || is_command_installed_in_windows shellcheck; then
         echo Installing ShellCheck
         sudo apt install shellcheck
     fi
