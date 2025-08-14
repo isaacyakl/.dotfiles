@@ -1,5 +1,10 @@
 #!/bin/bash
 
+HELPERS="$HOME/.config/yadm/helpers.sh"
+chmod +x "$HELPERS"
+# shellcheck source=$HOME/.config/yadm/helpers.sh
+. "${HELPERS}"
+
 # Remove old nvm use defaults auto-launch
 OLD_LINE="if [ -f .nvmrc ]; then nvm install; else nvm install --lts; fi"
 FILE=".bashrc"
@@ -65,7 +70,7 @@ if $IS_LINUX && is_command_available yadm && [[ ! -d "$HOME/.yadm-project" ]]; t
     sudo ln -s "$HOME/.yadm-project/yadm" /bin/yadm;
 fi
 
-if $IS_WINDOWS_GIT_BASH && is_command_available nvm; then
+if $IS_WINDOWS_GIT_BASH && [[ -d "$HOME/.nvm" ]]; then
     echo "NVM is currently installed in Git Bash."
     read -p "Do you want to uninstall NVM from Git Bash? (y/N): " -n 1 -r
     echo # Move to a new line after the response
