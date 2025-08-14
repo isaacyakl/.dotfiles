@@ -64,3 +64,54 @@ if $IS_LINUX && is_command_available yadm && [[ ! -d "$HOME/.yadm-project" ]]; t
     git clone https://github.com/yadm-dev/yadm.git "$HOME/.yadm-project";
     sudo ln -s "$HOME/.yadm-project/yadm" /bin/yadm;
 fi
+
+if $IS_WINDOWS_GIT_BASH && is_command_available nvm; then
+    echo "NVM is currently installed in Git Bash."
+    read -p "Do you want to uninstall NVM from Git Bash? (y/N): " -n 1 -r
+    echo # Move to a new line after the response
+    
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "Uninstalling NVM from Git Bash..."
+
+        nvm_dir="${NVM_DIR:-~/.nvm}"
+        nvm unload
+        rm -rf "$nvm_dir"
+
+        # Remove NVM_DIR export
+        OLD_LINE='export NVM_DIR="$HOME/.nvm"'
+        FILE=".bashrc"
+        if is_line_in_file "$OLD_LINE" "$FILE"; then
+            echo "Cleaning up NVM_DIR export"
+            sed -i "\|export NVM_DIR=\"\$HOME/\.nvm\"|d" "$FILE"
+        fi
+
+        # Remove nvm.sh loader
+        OLD_LINE='[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm'
+        FILE=".bashrc"
+        if is_line_in_file "$OLD_LINE" "$FILE"; then
+            echo "Cleaning up nvm.sh loader"
+            sed -i "\|\[ -s \"\$NVM_DIR/nvm\.sh\" \] && \\\\. \"\$NVM_DIR/nvm\.sh\"  # This loads nvm|d" "$FILE"
+        fi
+
+        # Remove nvm bash_completion loader
+        OLD_LINE='[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion'
+        FILE=".bashrc"
+        if is_line_in_file "$OLD_LINE" "$FILE"; then
+            echo "Cleaning up nvm bash_completion loader"
+            sed -i "\|\[ -s \"\$NVM_DIR/bash_completion\" \] && \\\\. \"\$NVM_DIR/bash_completion\"  # This loads nvm bash_completion|d" "$FILE"
+        fi
+
+        # Remove NVM_USE auto-launch
+        OLD_LINE="if [[ -f .nvmrc ]]; then nvm use; fi"
+        FILE=".bashrc"
+        is_line_in_file "$OLD_LINE" "$FILE"
+        if is_line_in_file "$OLD_LINE" "$FILE"; then
+            echo "Cleaning up NVM auto-use line"
+            sed -i "\|if \[\[ -f .nvmrc \]\]; then nvm use; fi|d" "$FILE"
+        fi
+
+        echo "NVM has been uninstalled from Git Bash."
+    else
+        echo "Skipping NVM in Git Bash uninstallation."
+    fi
+fi

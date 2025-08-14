@@ -59,3 +59,23 @@ function is_command_available() {
     return 1 # Command not found
   fi
 }
+
+function is_command_installed_in_windows() {
+  local cmd="$1"
+  local cmd_path
+  
+  # Get the path of the command using which
+  cmd_path=$(which "$cmd" 2>/dev/null)
+  
+  # Check if which found the command
+  if [[ -z "$cmd_path" ]]; then
+    return 1 # Command not found
+  fi
+  
+  # Check if the path contains '/mnt/c/' (Windows installation in WSL)
+  if [[ "$cmd_path" == *"/mnt/c/"* ]]; then
+    return 0 # Command is installed in Windows
+  else
+    return 1 # Command is not installed in Windows
+  fi
+}
